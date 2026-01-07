@@ -3,7 +3,7 @@ node_modules/
 *.log
 .env
 .vscode/
-public/uploads/
+public/uploads/*
 public/images/qr-custom*
 data/articles/*.md
 data/articles/metadata.json
