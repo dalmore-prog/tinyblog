@@ -4,6 +4,7 @@ node_modules/
 .env
 .vscode/
 public/uploads/*
+!public/uploads/.gitkeep
 public/images/qr-custom*
 data/articles/*.md
 data/articles/metadata.json
