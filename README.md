@@ -21,7 +21,7 @@
 ### 2. 安装步骤
 ```bash
 # 克隆项目
-git clone https://github.com/tuzaix/tinyblog.git
+git clone https://github.com/dalmore-prog/tinyblog.git
 cd tinyblog
 
 # 首次初始化项目
