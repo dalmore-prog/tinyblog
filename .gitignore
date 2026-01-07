@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.vscode/
+public/uploads/
+public/images/qr-custom*
+data/articles/*.md
+data/articles/metadata.json
+data/keys.json
+data/settings.json
+data/about.md
+data/privacy.md

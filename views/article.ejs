@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= article.title %> - <%= settings.site_name %></title>
+    <link rel="preconnect" href="https://fonts.loli.net">
+    <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8108389486087485" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="logo"><%= settings.site_name %></a>
+            <div class="nav-menu">
+                <a href="/" class="nav-item">首页</a>
+                <a href="/about" class="nav-item">关于</a>
+                <a href="#" class="nav-item" onclick="openContactModal(); return false;">联系客服</a>
+                <select id="theme-select" class="theme-select" onchange="changeTheme(this.value)">
+                    <option value="light">☀️ 浅色</option>
+                    <option value="dark">🌙 深色</option>
+                    <option value="sepia">📖 护眼</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container" style="display: block;"> <!-- Single Column for Article -->
+        
+        <article class="article-container">
+            <header class="article-header">
+                <h1 class="article-h1"><%= article.title %></h1>
+                <div class="article-meta">
+                    <i class="far fa-calendar-alt"></i> <%= article.date %> &nbsp;&nbsp;
+                    <i class="fas fa-eye"></i> 付费阅读
+                </div>
+            </header>
+
+            <div class="article-summary" style="margin-bottom: 40px; border-left: 4px solid var(--primary-color); padding-left: 15px;">
+                <strong>摘要：</strong><%= article.summary %>
+            </div>
+
+            <!-- Locked Placeholder -->
+            <% if (isLocked) { %>
+                <div id="locked-content" class="locked-placeholder" onclick="openModal()" style="cursor: pointer;">
+                    <i class="fas fa-lock" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                    <p>本内容为付费资源，请输入卡密解锁。</p>
+                    <p style="font-size: 0.9rem; color: var(--primary-color); margin-top: 10px;">(点击此处解锁)</p>
+                </div>
+
+                <!-- Unlocked Content (Hidden initially) -->
+                <div id="article-body" class="markdown-body" style="display:none"></div>
+            <% } else { %>
+                <div id="article-body" class="markdown-body">
+                    <%- htmlContent %>
+                </div>
+                <script>
+                    window.onload = function() {
+                        const watermarkCanvas = document.getElementById('watermark-canvas');
+                        if (watermarkCanvas) {
+                            drawWatermark('<%= settings.watermark_text %>');
+                            startProtection();
+                        }
+                    };
+                </script>
+            <% } %>
+        </article>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-links">
+            <a href="/about">关于我们</a>
+            <a href="#" onclick="openContactModal(); return false;">联系方式</a>
+            <a href="/privacy">隐私政策</a>
+        </div>
+        <p>&copy; <%= new Date().getFullYear() %> <%= settings.site_name %>. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Auth Modal -->
+    <% if (isLocked) { %>
+    <div class="modal-overlay" id="auth-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000;">
+        <div class="modal" style="padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%;">
+            <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            <h3><%= settings.popup_title %></h3>
+            <p><%= settings.popup_message %></p>
+            <img src="<%= settings.wechat_qr_image %>" alt="QR Code">
+            <div>
+                <input type="text" id="key-input" placeholder="请输入卡密" style="width: 80%; padding: 12px; margin: 15px 0; border: 1px solid var(--border-color); border-radius: 6px; text-align: center;">
+            </div>
+            <button onclick="unlock()" style="background: var(--primary-color); color: white; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer;">立即解锁</button>
+            <p id="error-msg" style="color: #dc3545; margin-top:10px; display:none"></p>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- Watermark Canvas -->
+    <% if (settings.watermark_text && settings.watermark_text.trim() !== "") { %>
+    <canvas id="watermark-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999;"></canvas>
+    <% } %>
+
+    <!-- Contact Modal -->
+    <div class="modal-overlay" id="contact-modal" style="display: none;">
+        <div class="modal">
+            <button class="modal-close" onclick="closeContactModal()"><i class="fas fa-times"></i></button>
+            <h3>联系客服</h3>
+            <p>扫描下方二维码添加客服微信</p>
+            <img src="<%= settings.wechat_qr_image %>" alt="QR Code">
+            <p style="font-size: 0.9rem; margin-top: 15px;">获取最新文章卡密 / 商务合作</p>
+        </div>
+    </div>
+
+    <script>
+        // Contact Modal Logic
+        function openContactModal() {
+            document.getElementById('contact-modal').style.display = 'flex';
+        }
+        function closeContactModal() {
+            document.getElementById('contact-modal').style.display = 'none';
+        }
+        document.getElementById('contact-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeContactModal();
+        });
+
+        // --- Theme Logic ---
+        const savedTheme = localStorage.getItem('theme') || '<%= settings.default_theme || "light" %>';
+        document.body.setAttribute('data-theme', savedTheme);
+        document.getElementById('theme-select').value = savedTheme;
+
+        function changeTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            // Redraw watermark if exists
+            const watermarkCanvas = document.getElementById('watermark-canvas');
+            const articleBody = document.getElementById('article-body');
+            if (watermarkCanvas && articleBody && articleBody.style.display !== 'none') {
+                drawWatermark(watermarkText);
+            }
+        }
+
+        // --- Auth & Protection Logic ---
+        const articleId = '<%= article.id %>';
+        const watermarkText = '<%= settings.watermark_text %>';
+        let currentKey = '';
+        
+        // Anti-Copy
+        document.body.style.userSelect = 'none';
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'p')) e.preventDefault();
+            if (e.key === 'F12') e.preventDefault();
+        });
+
+        function closeModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+        }
+
+        function openModal() {
+            document.getElementById('auth-modal').style.display = 'flex';
+        }
+
+        async function unlock() {
+            const key = document.getElementById('key-input').value.trim();
+            const btn = document.querySelector('.modal button');
+            const errorMsg = document.getElementById('error-msg');
+            
+            if (!key) return;
+            
+            btn.disabled = true;
+            btn.innerText = '验证中...';
+            errorMsg.style.display = 'none';
+            
+            try {
+                // Get browser fingerprint
+                const fpPromise = FingerprintJS.load();
+                const fp = await fpPromise;
+                const result = await fp.get();
+                const visitorId = result.visitorId;
+
+                const res = await fetch('/api/unlock', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        article_id: articleId, 
+                        key: key,
+                        fingerprint: visitorId
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    currentKey = key;
+                    document.getElementById('auth-modal').style.display = 'none';
+                    document.getElementById('locked-content').style.display = 'none';
+                    const body = document.getElementById('article-body');
+                    body.innerHTML = data.content;
+                    body.style.display = 'block';
+                    
+                    if (document.getElementById('watermark-canvas')) {
+                        drawWatermark(watermarkText);
+                        startProtection();
+                    }
+                } else {
+                    errorMsg.innerText = data.message;
+                    errorMsg.style.display = 'block';
+                }
+            } catch (e) {
+                errorMsg.innerText = '网络错误';
+                errorMsg.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '立即解锁';
+            }
+        }
+
+        function drawWatermark(text) {
+            const canvas = document.getElementById('watermark-canvas');
+            if (!canvas || !text) return;
+            const ctx = canvas.getContext('2d');
+            
+            const resize = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                const fontSize = 16;
+                ctx.font = `${fontSize}px "Noto Sans SC", "Microsoft YaHei", sans-serif`;
+                
+                // Get color from CSS variable
+                const color = getComputedStyle(document.body).getPropertyValue('--watermark-color').trim();
+                ctx.fillStyle = color;
+                
+                // Calculate adaptive spacing based on text length
+                const textMetrics = ctx.measureText(text);
+                const textWidth = textMetrics.width;
+                
+                // Further reduced multiplier for even tighter spacing
+                const gapX = Math.max(120, textWidth * 1.2); 
+                const gapY = 80; // Further reduced vertical gap
+                
+                ctx.save();
+                ctx.rotate(-25 * Math.PI / 180);
+                
+                // Start drawing from negative coordinates to cover full screen after rotation
+                for (let x = -canvas.width; x < canvas.width * 2; x += gapX) {
+                    for (let y = -canvas.height; y < canvas.height * 2; y += gapY) {
+                        ctx.fillText(text, x, y);
+                    }
+                }
+                ctx.restore();
+            };
+            
+            // Cleanup existing listener to prevent multiple triggers
+            if (window._watermarkResizeHandler) {
+                window.removeEventListener('resize', window._watermarkResizeHandler);
+            }
+            window._watermarkResizeHandler = resize;
+            window.addEventListener('resize', resize);
+            resize();
+        }
+
+        function startProtection() {
+            const observer = new MutationObserver((mutations) => {
+                const canvas = document.getElementById('watermark-canvas');
+                if (!document.body.contains(canvas) || canvas.style.display === 'none' || canvas.style.opacity === '0') {
+                    document.body.innerHTML = '<h1 style="color:red;padding:50px;text-align:center;">安全警告：检测到非法篡改，内容已销毁。</h1>';
+                    observer.disconnect();
+                }
+            });
+            observer.observe(document.body, { childList: true, attributes: true, subtree: true });
+        }
+    </script>
+</body>
+</html>

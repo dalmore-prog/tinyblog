@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= settings.site_name %></title>
+    <link rel="preconnect" href="https://fonts.loli.net">
+    <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8108389486087485" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="logo"><%= settings.site_name %></a>
+            <div class="nav-menu">
+                <a href="/" class="nav-item">首页</a>
+                <a href="/about" class="nav-item">关于</a>
+                <a href="#" class="nav-item" onclick="openContactModal(); return false;">联系客服</a>
+                <select id="theme-select" class="theme-select" onchange="changeTheme(this.value)">
+                    <option value="light">☀️ 浅色</option>
+                    <option value="dark">🌙 深色</option>
+                    <option value="sepia">📖 护眼</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-container">
+        
+        <!-- Left Column: Articles -->
+        <div class="content-column">
+            <% if (articles && articles.length > 0) { %>
+                <% articles.forEach(function(article) { %>
+                    <article class="article-card">
+                        <h2 class="article-title">
+                            <a href="/article/<%= article.id %>"><%= article.title %></a>
+                        </h2>
+                        <div class="article-meta">
+                            <i class="far fa-calendar-alt"></i> <%= article.date %>
+                        </div>
+                        <div class="article-summary">
+                            <%= article.summary %>
+                        </div>
+                        <a href="/article/<%= article.id %>" class="read-more">阅读全文 &rarr;</a>
+                    </article>
+                <% }); %>
+            <% } else { %>
+                <div class="article-card" style="text-align: center; padding: 50px;">
+                    <p>暂无文章，请登录后台发布。</p>
+                </div>
+            <% } %>
+
+            <!-- Pagination -->
+            <% if (typeof pagination !== 'undefined' && pagination.totalPages > 1) { %>
+                <div class="pagination">
+                    <% if (pagination.page > 1) { %>
+                        <a href="/?page=<%= pagination.page - 1 %>&limit=<%= pagination.limit %>" class="page-link">&laquo; 上一页</a>
+                    <% } else { %>
+                        <span class="page-link disabled">&laquo; 上一页</span>
+                    <% } %>
+                    
+                    <span class="page-info">第 <%= pagination.page %> / <%= pagination.totalPages %> 页</span>
+                    
+                    <% if (pagination.page < pagination.totalPages) { %>
+                        <a href="/?page=<%= pagination.page + 1 %>&limit=<%= pagination.limit %>" class="page-link">下一页 &raquo;</a>
+                    <% } else { %>
+                        <span class="page-link disabled">下一页 &raquo;</span>
+                    <% } %>
+                    
+                    <select onchange="window.location.href='/?page=1&limit=' + this.value" class="limit-select">
+                        <option value="5" <%= pagination.limit === 5 ? 'selected' : '' %>>5条/页</option>
+                        <option value="10" <%= pagination.limit === 10 ? 'selected' : '' %>>10条/页</option>
+                        <option value="20" <%= pagination.limit === 20 ? 'selected' : '' %>>20条/页</option>
+                    </select>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Right Column: Sidebar -->
+        <aside class="sidebar-column">
+            <div class="sidebar-widget">
+                <h3 class="widget-title">关于本站</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                    这是一个基于卡密验证的私有知识库。所有内容均为原创干货，解锁后永久阅读。
+                </p>
+            </div>
+            
+            <div class="sidebar-widget">
+                <h3 class="widget-title">🔥 热门文章</h3>
+                <ul class="hot-articles-list">
+                    <% if (hotArticles && hotArticles.length > 0) { %>
+                        <% hotArticles.forEach(function(article, index) { %>
+                            <li>
+                                <span class="rank <%= index < 3 ? 'top-rank' : '' %>"><%= index + 1 %></span>
+                                <a href="/article/<%= article.id %>" title="<%= article.title %>"><%= article.title %></a>
+                                <span class="views"><i class="fas fa-eye"></i> <%= article.views %></span>
+                            </li>
+                        <% }); %>
+                    <% } else { %>
+                        <li style="color: var(--text-secondary); font-size: 0.9rem;">暂无热门文章</li>
+                    <% } %>
+                </ul>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-links">
+            <a href="/about">关于我们</a>
+            <a href="#" onclick="openContactModal(); return false;">联系方式</a>
+            <a href="/privacy">隐私政策</a>
+        </div>
+        <p>&copy; <%= new Date().getFullYear() %> <%= settings.site_name %>. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Contact Modal -->
+    <div class="modal-overlay" id="contact-modal" style="display: none;">
+        <div class="modal">
+            <button class="modal-close" onclick="closeContactModal()"><i class="fas fa-times"></i></button>
+            <h3>联系客服</h3>
+            <p>扫描下方二维码添加客服微信</p>
+            <img src="<%= settings.wechat_qr_image %>" alt="QR Code">
+            <p style="font-size: 0.9rem; margin-top: 15px;">获取最新文章卡密 / 商务合作</p>
+        </div>
+    </div>
+
+    <script>
+        // Contact Modal Logic
+        function openContactModal() {
+            document.getElementById('contact-modal').style.display = 'flex';
+        }
+        function closeContactModal() {
+            document.getElementById('contact-modal').style.display = 'none';
+        }
+        document.getElementById('contact-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeContactModal();
+        });
+
+        // Theme Logic
+        const savedTheme = localStorage.getItem('theme') || '<%= settings.default_theme || "light" %>';
+        document.body.setAttribute('data-theme', savedTheme);
+        document.getElementById('theme-select').value = savedTheme;
+
+        function changeTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+    </script>
+</body>
+</html>
